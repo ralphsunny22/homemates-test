@@ -10,3 +10,5 @@ Route::group(['namespace' => 'Web\V1'], function () {
     });
     
 });
+
+

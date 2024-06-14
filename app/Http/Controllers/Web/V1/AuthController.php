@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Notifications\UserLogin;
+use Illuminate\Support\Facades\Notification;
 
 use App\Models\User;
 
@@ -29,7 +31,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'password' => ['required', Password::min(8)],
+            // 'password' => ['required', Password::min(8)],
         ], [
             'name.required' => 'The name field is required.',
             'email.required' => 'The email name field is required.',
@@ -46,8 +48,17 @@ class AuthController extends Controller
         ]);
 
         $token = Auth::login($user);
+
+        Notification::route('mail', ['ralphsunny114@gmail.com'])->notify(new UserLogin($user));
+
+        // try {
+        //     Notification::route('mail', ['ralphsunny114@gmail.com'])->notify(new UserLogin($user));
+        // } catch (\Exception $exception) {
+        //     return response()->json(['status' => false, 'errors' => $exception], 403);
+        // }
+
         return response()->json([
-            'status' => true,
+            'success' => true,
             'message' => 'User created successfully',
             'user' => $user,
             'authorisation' => [
@@ -69,20 +80,22 @@ class AuthController extends Controller
         $token = Auth::attempt($credentials);
         if (!$token) {
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
             ], 401);
         }
 
         $user = Auth::user();
+        Notification::route('mail', ['ralphsunny114@gmail.com'])->notify(new UserLogin($user));
+        
         return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'authorisation' => [
-                    'token' => $token,
-                    'type' => 'bearer',
-                ]
-            ]);
+            'success' => true,
+            'user' => $user,
+            'authorisation' => [
+                'token' => $token,
+                'type' => 'bearer',
+            ]
+        ]);
 
     }
 
